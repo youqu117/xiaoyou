@@ -1,0 +1,20 @@
+{
+  "name": "mongodb-web-submission",
+  "version": "1.0.0",
+  "description": "网页表单数据提交到MongoDB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongodb": "^5.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["mongodb", "express", "web", "submission"],
+  "author": "",
+  "license": "MIT"
+}

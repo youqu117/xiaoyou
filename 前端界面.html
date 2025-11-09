@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB数据提交</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .submit-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .message-list {
+            margin-top: 40px;
+            border-top: 2px solid #f8f9fa;
+            padding-top: 30px;
+        }
+        
+        .message-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .message-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .message-meta {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 MongoDB数据提交</h1>
+            <p>输入信息并保存到MongoDB数据库</p>
+        </div>
+        
+        <div class="content">
+            <div id="alert" class="alert"></div>
+            
+            <form id="messageForm">
+                <div class="form-group">
+                    <label for="message">输入信息：</label>
+                    <textarea 
+                        id="message" 
+                        name="message" 
+                        placeholder="请输入要保存的信息..."
+                        required
+                    ></textarea>
+                </div>
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    提交到MongoDB
+                </button>
+            </form>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在处理...</p>
+            </div>
+            
+            <div class="message-list">
+                <h3>最近提交的信息：</h3>
+                <div id="messagesContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('messageForm');
+        const alertDiv = document.getElementById('alert');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const messagesContainer = document.getElementById('messagesContainer');
+
+        // 显示提示信息
+        function showAlert(message, type) {
+            alertDiv.textContent = message;
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // 加载消息列表
+        async function loadMessages() {
+            try {
+                const response = await fetch('/messages');
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayMessages(result.data);
+                } else {
+                    messagesContainer.innerHTML = '<p>加载数据失败</p>';
+                }
+            } catch (error) {
+                messagesContainer.innerHTML = '<p>无法连接到服务器</p>';
+            }
+        }
+
+        // 显示消息列表
+        function displayMessages(messages) {
+            if (messages.length === 0) {
+                messagesContainer.innerHTML = '<p>暂无提交信息</p>';
+                return;
+            }
+            
+            messagesContainer.innerHTML = messages.map(msg => `
+                <div class="message-item">
+                    <div class="message-text">${escapeHtml(msg.message)}</div>
+                    <div class="message-meta">
+                        提交时间: ${new Date(msg.timestamp).toLocaleString('zh-CN')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 表单提交处理
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const message = document.getElementById('message').value.trim();
+            if (!message) {
+                showAlert('请输入有效信息', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('信息提交成功！', 'success');
+                    form.reset();
+                    await loadMessages(); // 重新加载消息列表
+                } else {
+                    showAlert(result.error || '提交失败', 'error');
+                }
+            } catch (error) {
+                showAlert('网络错误，请稍后重试', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        // 页面加载时获取消息列表
+        document.addEventListener('DOMContentLoaded', loadMessages);
+    </script>
+</body>
+</html>
