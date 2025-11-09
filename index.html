@@ -3,295 +3,590 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MongoDB数据提交</title>
+    <title>用户信息管理系统 - GitHub演示版</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
         
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
+            background-color: white;
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
             overflow: hidden;
         }
         
         .header {
-            background: #2c3e50;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
             color: white;
-            padding: 30px;
+            padding: 25px;
             text-align: center;
         }
         
         .header h1 {
-            margin-bottom: 10px;
-            font-size: 2.5em;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
         }
         
-        .content {
-            padding: 40px;
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .github-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        
+        .form-container {
+            padding: 30px;
         }
         
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         
-        label {
+        .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
+            font-weight: 500;
+            color: #333;
         }
         
-        textarea {
+        .form-control {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 16px;
-            resize: vertical;
-            min-height: 120px;
-            transition: border-color 0.3s;
+            transition: border 0.3s;
         }
         
-        textarea:focus {
+        .form-control:focus {
+            border-color: #6a11cb;
             outline: none;
-            border-color: #667eea;
         }
         
-        .submit-btn {
-            background: #667eea;
+        .btn {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 12px 20px;
             border-radius: 8px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
             width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         
-        .submit-btn:hover {
-            background: #5a6fd8;
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
         }
         
-        .submit-btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
+        .btn-secondary {
+            background: #6c757d;
         }
         
-        .message-list {
-            margin-top: 40px;
-            border-top: 2px solid #f8f9fa;
-            padding-top: 30px;
-        }
-        
-        .message-item {
-            background: #f8f9fa;
-            padding: 15px;
+        .message {
+            padding: 12px;
             border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .message-text {
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        
-        .message-meta {
-            font-size: 12px;
-            color: #7f8c8d;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            margin-top: 20px;
+            text-align: center;
             display: none;
         }
         
-        .alert-success {
-            background: #d4edda;
+        .success {
+            background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
         
-        .alert-error {
-            background: #f8d7da;
+        .error {
+            background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
         
-        .loading {
-            display: none;
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tab {
+            flex: 1;
             text-align: center;
-            padding: 20px;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
         }
         
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
+        .tab.active {
+            color: #6a11cb;
+            border-bottom: 2px solid #6a11cb;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .user-info h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .info-item {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            width: 80px;
+            color: #666;
+        }
+        
+        .info-value {
+            flex: 1;
+        }
+        
+        .demo-accounts {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .demo-accounts h4 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+        
+        .demo-account {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #856404;
+            color: #856404;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #6c757d;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📝 MongoDB数据提交</h1>
-            <p>输入信息并保存到MongoDB数据库</p>
+            <h1>用户信息管理系统</h1>
+            <p>GitHub Pages演示版本</p>
+            <div class="github-badge">演示数据 - 非真实数据库</div>
         </div>
         
-        <div class="content">
-            <div id="alert" class="alert"></div>
-            
-            <form id="messageForm">
+        <div class="tabs">
+            <div class="tab active" data-tab="login">登录</div>
+            <div class="tab" data-tab="register">注册</div>
+            <div class="tab" data-tab="about">关于</div>
+        </div>
+        
+        <div class="form-container">
+            <!-- 登录表单 -->
+            <div class="tab-content active" id="login-tab">
                 <div class="form-group">
-                    <label for="message">输入信息：</label>
-                    <textarea 
-                        id="message" 
-                        name="message" 
-                        placeholder="请输入要保存的信息..."
-                        required
-                    ></textarea>
+                    <label for="login-username">用户名</label>
+                    <input type="text" id="login-username" class="form-control" placeholder="请输入用户名">
                 </div>
-                <button type="submit" class="submit-btn" id="submitBtn">
-                    提交到MongoDB
-                </button>
-            </form>
-            
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>正在处理...</p>
+                
+                <div class="form-group">
+                    <label for="login-password">密码</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="请输入密码">
+                </div>
+                
+                <button class="btn" id="login-btn">登录</button>
+                
+                <div class="demo-accounts">
+                    <h4>演示账户</h4>
+                    <div class="demo-account">
+                        <span>用户1: demo / demo123</span>
+                        <button class="copy-btn" data-username="demo" data-password="demo123">填充</button>
+                    </div>
+                    <div class="demo-account">
+                        <span>用户2: test / test123</span>
+                        <button class="copy-btn" data-username="test" data-password="test123">填充</button>
+                    </div>
+                    <div class="demo-account">
+                        <span>管理员: admin / admin123</span>
+                        <button class="copy-btn" data-username="admin" data-password="admin123">填充</button>
+                    </div>
+                </div>
+                
+                <div class="message" id="login-message"></div>
             </div>
             
-            <div class="message-list">
-                <h3>最近提交的信息：</h3>
-                <div id="messagesContainer"></div>
+            <!-- 注册表单 -->
+            <div class="tab-content" id="register-tab">
+                <div class="form-group">
+                    <label for="register-username">用户名</label>
+                    <input type="text" id="register-username" class="form-control" placeholder="请输入用户名">
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-password">密码</label>
+                    <input type="password" id="register-password" class="form-control" placeholder="请输入密码">
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">姓名</label>
+                    <input type="text" id="name" class="form-control" placeholder="请输入您的姓名">
+                </div>
+                
+                <div class="form-group">
+                    <label for="gender">性别</label>
+                    <select id="gender" class="form-control">
+                        <option value="">请选择性别</option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="qq">QQ号</label>
+                    <input type="text" id="qq" class="form-control" placeholder="请输入QQ号">
+                </div>
+                
+                <button class="btn" id="register-btn">注册并上传信息</button>
+                
+                <div class="message info">
+                    注意：这是演示版本，数据仅保存在浏览器本地，刷新页面后会丢失。
+                </div>
+                
+                <div class="message" id="register-message"></div>
             </div>
+            
+            <!-- 关于页面 -->
+            <div class="tab-content" id="about-tab">
+                <h3>关于此项目</h3>
+                <p>这是一个用户信息管理系统的演示版本，托管在GitHub Pages上。</p>
+                
+                <div class="message info">
+                    <strong>功能说明：</strong><br>
+                    - 用户注册和登录<br>
+                    - 个人信息管理<br>
+                    - 响应式设计<br>
+                    - 本地数据存储（演示用）
+                </div>
+                
+                <div class="message">
+                    <strong>技术栈：</strong><br>
+                    - 前端：HTML5, CSS3, JavaScript<br>
+                    - 存储：浏览器本地存储（演示）<br>
+                    - 部署：GitHub Pages
+                </div>
+                
+                <button class="btn btn-secondary" id="view-source-btn">查看源代码</button>
+            </div>
+            
+            <!-- 用户信息显示区域 -->
+            <div class="user-info" id="user-info">
+                <h3>您的个人信息</h3>
+                <div class="info-item">
+                    <div class="info-label">用户名:</div>
+                    <div class="info-value" id="info-username"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">姓名:</div>
+                    <div class="info-value" id="info-name"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">性别:</div>
+                    <div class="info-value" id="info-gender"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">QQ号:</div>
+                    <div class="info-value" id="info-qq"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">注册日期:</div>
+                    <div class="info-value" id="info-registerDate"></div>
+                </div>
+                
+                <button class="btn btn-secondary" id="logout-btn" style="margin-top: 15px;">退出登录</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>GitHub演示项目 &copy; 2023 | 数据存储于浏览器本地</p>
         </div>
     </div>
 
     <script>
-        const form = document.getElementById('messageForm');
-        const alertDiv = document.getElementById('alert');
-        const submitBtn = document.getElementById('submitBtn');
-        const loading = document.getElementById('loading');
-        const messagesContainer = document.getElementById('messagesContainer');
-
-        // 显示提示信息
-        function showAlert(message, type) {
-            alertDiv.textContent = message;
-            alertDiv.className = `alert alert-${type}`;
-            alertDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                alertDiv.style.display = 'none';
-            }, 5000);
+        // 使用浏览器本地存储模拟数据库
+        const STORAGE_KEY = 'user_management_demo_data';
+        
+        // 初始化演示数据
+        function initDemoData() {
+            if (!localStorage.getItem(STORAGE_KEY)) {
+                const demoData = {
+                    users: [
+                        {
+                            id: 1,
+                            username: 'demo',
+                            password: 'demo123',
+                            name: '演示用户',
+                            gender: '男',
+                            qq: '123456789',
+                            registerDate: new Date('2023-01-01').toISOString()
+                        },
+                        {
+                            id: 2,
+                            username: 'test',
+                            password: 'test123',
+                            name: '测试用户',
+                            gender: '女',
+                            qq: '987654321',
+                            registerDate: new Date('2023-02-01').toISOString()
+                        },
+                        {
+                            id: 3,
+                            username: 'admin',
+                            password: 'admin123',
+                            name: '管理员',
+                            gender: '其他',
+                            qq: '555555555',
+                            registerDate: new Date('2023-03-01').toISOString()
+                        }
+                    ],
+                    nextId: 4
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(demoData));
+            }
         }
-
-        // 加载消息列表
-        async function loadMessages() {
-            try {
-                const response = await fetch('/messages');
-                const result = await response.json();
+        
+        // 获取所有用户
+        function getUsers() {
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"users": []}');
+            return data.users;
+        }
+        
+        // 添加新用户
+        function addUser(user) {
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"users": [], "nextId": 1}');
+            user.id = data.nextId++;
+            user.registerDate = new Date().toISOString();
+            data.users.push(user);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            return user;
+        }
+        
+        // 查找用户
+        function findUser(username, password) {
+            const users = getUsers();
+            return users.find(u => u.username === username && u.password === password);
+        }
+        
+        // 检查用户名是否存在
+        function usernameExists(username) {
+            const users = getUsers();
+            return users.some(u => u.username === username);
+        }
+        
+        // 标签切换功能
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有活动标签
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // 添加当前活动标签
+                this.classList.add('active');
                 
-                if (result.success) {
-                    displayMessages(result.data);
-                } else {
-                    messagesContainer.innerHTML = '<p>加载数据失败</p>';
-                }
-            } catch (error) {
-                messagesContainer.innerHTML = '<p>无法连接到服务器</p>';
-            }
-        }
-
-        // 显示消息列表
-        function displayMessages(messages) {
-            if (messages.length === 0) {
-                messagesContainer.innerHTML = '<p>暂无提交信息</p>';
-                return;
-            }
-            
-            messagesContainer.innerHTML = messages.map(msg => `
-                <div class="message-item">
-                    <div class="message-text">${escapeHtml(msg.message)}</div>
-                    <div class="message-meta">
-                        提交时间: ${new Date(msg.timestamp).toLocaleString('zh-CN')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // HTML转义
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // 表单提交处理
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const message = document.getElementById('message').value.trim();
-            if (!message) {
-                showAlert('请输入有效信息', 'error');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            loading.style.display = 'block';
-
-            try {
-                const response = await fetch('/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message })
+                // 隐藏所有内容
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
                 });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert('信息提交成功！', 'success');
-                    form.reset();
-                    await loadMessages(); // 重新加载消息列表
-                } else {
-                    showAlert(result.error || '提交失败', 'error');
-                }
+                
+                // 显示对应内容
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // 演示账户填充功能
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const username = this.getAttribute('data-username');
+                const password = this.getAttribute('data-password');
+                
+                document.getElementById('login-username').value = username;
+                document.getElementById('login-password').value = password;
+                
+                showMessage('login-message', `已填充账户: ${username}`, 'info');
+            });
+        });
+        
+        // 注册按钮点击事件
+        document.getElementById('register-btn').addEventListener('click', function() {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const name = document.getElementById('name').value;
+            const gender = document.getElementById('gender').value;
+            const qq = document.getElementById('qq').value;
+            
+            // 简单验证
+            if (!username || !password || !name || !gender || !qq) {
+                showMessage('register-message', '请填写所有字段', 'error');
+                return;
+            }
+            
+            if (usernameExists(username)) {
+                showMessage('register-message', '用户名已存在', 'error');
+                return;
+            }
+            
+            try {
+                // 添加用户到本地存储
+                const newUser = addUser({
+                    username,
+                    password,
+                    name,
+                    gender,
+                    qq
+                });
+                
+                showMessage('register-message', '注册成功！已保存到本地存储。', 'success');
+                
+                // 清空表单
+                document.getElementById('register-username').value = '';
+                document.getElementById('register-password').value = '';
+                document.getElementById('name').value = '';
+                document.getElementById('gender').value = '';
+                document.getElementById('qq').value = '';
+                
+                // 切换到登录标签
+                setTimeout(() => {
+                    document.querySelector('.tab[data-tab="login"]').click();
+                }, 1500);
+                
             } catch (error) {
-                showAlert('网络错误，请稍后重试', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                loading.style.display = 'none';
+                showMessage('register-message', '注册失败：' + error.message, 'error');
             }
         });
-
-        // 页面加载时获取消息列表
-        document.addEventListener('DOMContentLoaded', loadMessages);
+        
+        // 登录按钮点击事件
+        document.getElementById('login-btn').addEventListener('click', function() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            // 简单验证
+            if (!username || !password) {
+                showMessage('login-message', '请输入用户名和密码', 'error');
+                return;
+            }
+            
+            // 查找用户
+            const user = findUser(username, password);
+            
+            if (user) {
+                showMessage('login-message', '登录成功！', 'success');
+                
+                // 显示用户信息
+                document.getElementById('info-username').textContent = user.username;
+                document.getElementById('info-name').textContent = user.name;
+                document.getElementById('info-gender').textContent = user.gender;
+                document.getElementById('info-qq').textContent = user.qq;
+                document.getElementById('info-registerDate').textContent = 
+                    new Date(user.registerDate).toLocaleString('zh-CN');
+                
+                // 显示用户信息区域
+                document.getElementById('user-info').style.display = 'block';
+                
+                // 清空表单
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+            } else {
+                showMessage('login-message', '用户名或密码错误', 'error');
+            }
+        });
+        
+        // 退出登录
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            document.getElementById('user-info').style.display = 'none';
+            showMessage('login-message', '已退出登录', 'info');
+        });
+        
+        // 查看源代码
+        document.getElementById('view-source-btn').addEventListener('click', function() {
+            window.open('https://github.com/你的用户名/user-management-demo', '_blank');
+        });
+        
+        // 显示消息的函数
+        function showMessage(elementId, message, type) {
+            const messageElement = document.getElementById(elementId);
+            messageElement.textContent = message;
+            messageElement.className = 'message ' + type;
+            messageElement.style.display = 'block';
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 初始化演示数据
+        initDemoData();
+        console.log("✅ 演示数据初始化完成");
     </script>
 </body>
 </html>
